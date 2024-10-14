@@ -18,3 +18,23 @@ MATCH (n) WHERE n.highvalue SET n:HighValue;
 
 // Export to json
 CALL apoc.export.json.all("all.json",{useTypes:true})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

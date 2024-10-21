@@ -324,7 +324,6 @@ RETURN count(*);
 MATCH ()-[r:ATTACK_PATH]->() DELETE r;
 ----
 
-endif::[]
 
 
 
@@ -348,7 +347,7 @@ endif::[]
 
 
 
-
+                                   
 
 
 

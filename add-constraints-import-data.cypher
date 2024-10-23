@@ -323,7 +323,71 @@ RETURN count(*);
 // Remove attack paths
 MATCH ()-[r:ATTACK_PATH]->() DELETE r;
 ----
+== Materializing attack paths data
 
+We saw possible attack paths from one user. 
+What is the possible extent of this analysis? 
+We can check similar possible attack paths in whole network.
+
+[source,cypher]
+----
+// Match a high value object
+MATCH (crownJewel :Group {objectid:'S-1-5-21-883232822-274137685-4173207997-512'})
+
+// Match all normal non-high value objects
+MATCH (source) WHERE NOT source:HighValue
+
+MATCH path = shortestPath((source)-[*..100]->(crownJewel))
+
+// Pair one-one nodes from the path between crown jewel and normal object
+UNWIND apoc.coll.pairsMin(nodes(path)) AS pair
+WITH pair[0] AS a, pair[1] AS b
+RETURN a.name, 'to', b.name LIMIT 10
+----
+
+In order to formalize this, for a possible risk mitigation, we can materialize the attack paths by writing a relationship with the name `"ATTACK_PATH"`.
+
+[source,cypher]
+----
+// Match a high value object
+MATCH (crownJewel:Group {objectid:'S-1-5-21-883232822-274137685-4173207997-512'})
+
+// Match all normal non-high value objects
+MATCH (source) WHERE NOT source:HighValue
+
+MATCH path = shortestPath((source)-[*..100]->(crownJewel))
+
+// Pair one-one nodes from the path between crownJewel and normal object
+UNWIND apoc.coll.pairsMin(nodes(path)) AS pair
+WITH pair[0] AS a, pair[1] AS b
+
+// Relationship -  path leading from a normal object to a high value object
+MERGE (a)-[r:ATTACK_PATH]->(b)
+RETURN count(r);
+----
+
+Check ATTACK_PATHS. 
+[source,cypher]
+----
+MATCH p=()-[r:ATTACK_PATH]->() 
+RETURN p LIMIT 25;
+
+== Analyze single attack path
+
+Now, let us take a close look at one attack path. 
+How can `"Piedad Flatley"` reach the `"ENTERPRISE DOMAIN CONTROLLERS"` group?
+
+[source,cypher]
+----
+MATCH (u:User {name:'PiedadFlatley255@TestCompany.Local' })
+
+// Match on object id of the ENTERPRISE DOMAIN CONTROLLERS Group
+MATCH (crownJewel:Group:HighValue {objectid: "TestCompany.Local-S-1-5-9"})
+
+MATCH path = shortestPath((u)-[*..100]->(crownJewel))
+
+RETURN path
+----
 
 
 
